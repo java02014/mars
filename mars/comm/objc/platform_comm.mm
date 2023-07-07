@@ -610,7 +610,7 @@ static struct sockaddr *get_cellular_ip_addr() {
     struct ifaddrs *interfaces = nullptr;
     int success = getifaddrs(&interfaces);
     if (success != 0) {
-        // CommonNetError(@"can not find cellular ip");
+        xerror2(TSF"can no get ifaddres.");
         freeifaddrs(interfaces);
         return nullptr;
     }
@@ -643,9 +643,9 @@ static struct sockaddr *get_cellular_ip_addr() {
         }
     }
     if (rtn != nullptr) {
-        // CommonNetInfo(@"celluar ip %s", ip_cstr);
+        xinfo2(TSF"celluar ip: %_", ip_cstr);
     } else {
-        // CommonNetError(@"can not find cellular ip");
+        xerror2(TSF"can no find cellular ip.");
     }
     freeifaddrs(interfaces);
     return rtn;
@@ -654,7 +654,7 @@ static struct sockaddr *get_cellular_ip_addr() {
 static bool dnsByCellular(const std::string &host_domain, std::string &ip) {
     struct sockaddr *cellular_addr = get_cellular_ip_addr();
     if (cellular_addr == nullptr) {
-        // CommonNetError(@"no cellular network");
+        xerror2(TSF"no cellular network.");
         return false;
     }
 
@@ -671,7 +671,7 @@ static bool dnsByCellular(const std::string &host_domain, std::string &ip) {
     }
     if (dns_result_ipv4.result_code == kCellularResultSuccess) {
         ip = std::string(dns_result_ipv4.host_ip_cstr);
-        // CommonNetInfo(@"dns ipv4 by cellular: %s", dns_result_ipv4.host_ip_cstr);
+        xinfo2(TSF"dns ipv4 by cellular. host:%_, ip:%_", host_domain, dns_result_ipv4.host_ip_cstr);
         return true;
     }
 
@@ -685,10 +685,10 @@ static bool dnsByCellular(const std::string &host_domain, std::string &ip) {
     }
     if (dns_result_ipv6.result_code == kCellularResultSuccess) {
         ip = std::string(dns_result_ipv6.host_ip_cstr);
-        // CommonNetInfo(@"dns ipv6 by cellular: %s", dns_result_ipv6.host_ip_cstr);
+        xinfo2(TSF"dns ipv6 by cellular. host:%_, ip:%_", host_domain, dns_result_ipv6.host_ip_cstr);
         return kCellularResultSuccess;
     }
-    // CommonNetError(@"dns by cellular: fail");
+    xwarn2(TSF"dns by cellular fail.");
     return false;
 }
 
@@ -696,7 +696,7 @@ static bool dnsByCellular(const std::string &host_domain, std::string &ip) {
 bool IsCellularNetworkActive() {
     struct sockaddr *cellular_addr = get_cellular_ip_addr();
     if (cellular_addr == nullptr) {
-        // CommonNetError(@"no cellular network");
+         xerror2(TSF"no cellular network");
         return false;
     }
     return true;
@@ -715,12 +715,12 @@ bool ResolveHostByCellularNetwork(const std::string &host, std::vector<std::stri
 bool BindSocketToCellularNetwork(int socket_fd) {
     struct sockaddr *cellular_addr = get_cellular_ip_addr();
     if (cellular_addr == nullptr) {
-        // CommonNetError(@"no cellular network");
+        xerror2(TSF"no cellular network");
         return false;
     }
     int rtn = ::bind(socket_fd, cellular_addr, cellular_addr->sa_len);
     if (rtn != 0) {
-        // CommonNetError(@"bind fail, errno:%d", errno);
+        xerror2(TSF"bind fail, errno:%_", errno);
         return false;
     }
     return true;
